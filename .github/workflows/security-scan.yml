@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Scan with Trivy
+      - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'nginx:1.16'
@@ -27,4 +27,4 @@ jobs:
                -F "scan_type=Trivy Scan" \
                -F "engagement=1" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
-               ${DD_URL}/api/v2/import-scan/
+               "${DD_URL}/api/v2/import-scan/"
