@@ -28,5 +28,14 @@ jobs:
                -F "scan_type=Trivy Scan" \
                -F "engagement_name=CI-CD-Pipeline" \
                -F "product_name=DevSecOps-Pipeline" \
+               -F "auto_create_context=true" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
                "${DD_URL}/api/v2/import-scan/"
+
+      - name: Import Kyverno to DefectDojo
+        env:
+          DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
+          DD_URL: ${{ secrets.DD_URL }}
+        run: |
+          chmod +x ./import_kyverno.sh
+          ./import_kyverno.sh

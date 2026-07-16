@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Configuration (à adapter si besoin)
+NAMESPACE="default"
+REPORT_NAME="8f9477e3-de02-4943-a7b0-d977f2a9b290"
+OUTPUT_FILE="kyverno_dojo.json"
+
+echo "Extraction et filtrage des violations Kyverno..."
+
+# 1. Extraction + Filtrage (on ne garde que les FAIL)
+kubectl get policyreport $REPORT_NAME -n $NAMESPACE -o json | \
+jq '{findings: [.results[] | select(.result == "fail") | {title: .message, severity: "High", description: .message, active: true, verified: false}]}' > $OUTPUT_FILE
+
+echo "Envoi vers DefectDojo..."
+
+# 2. Envoi via l'API (assure-toi que les variables DD_URL et DD_API_TOKEN sont exportées)
+curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
+  -H "Authorization: Token ${DD_API_TOKEN}" \
+  -F "scan_type=Generic Findings Import" \
+  -F "file=@$OUTPUT_FILE" \
+  -F "product_name=DevSecOps-Pipeline" \
+  -F "engagement_name=CI-CD-Pipeline" \
+  -F "auto_create_context=true"
+
+echo "Importation terminée !"
