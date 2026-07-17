@@ -5,37 +5,57 @@ on:
     branches: [ main ]
 
 jobs:
-  trivy-scan:
+  security-pipeline:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 1. Scan Trivy avec blocage sur vulnérabilités critiques
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'nginx:1.16'
+          image-ref: 'nginx:latest'
           format: 'json'
           output: 'trivy-report.json'
+          exit-code: '1' # Bloque le pipeline si vulnérabilités détectées
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true 
 
-      - name: Import to DefectDojo
+      # 2. Filtrage du rapport Trivy (version légère)
+      - name: Filter Trivy report
+        run: |
+          jq '{SchemaVersion: .SchemaVersion, ArtifactName: .ArtifactName, Results: [.Results[]? | {Target: .Target, Class: .Class, Vulnerabilities: [.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")]}]}' trivy-report.json > trivy-report-light.json
+
+      # 3. Import Trivy vers DefectDojo
+      - name: Import Trivy to DefectDojo
+        if: always()
         env:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          curl -v -X POST \
-               -F "file=@trivy-report.json" \
-               -F "scan_type=Trivy Scan" \
-               -F "engagement_name=CI-CD-Pipeline" \
-               -F "product_name=DevSecOps-Pipeline" \
-               -F "auto_create_context=true" \
+          curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
-               "${DD_URL}/api/v2/import-scan/"
+               -F "scan_type=Trivy Scan" \
+               -F "file=@trivy-report-light.json" \
+               -F "product_name=DevSecOps-Pipeline" \
+               -F "engagement_name=CI-CD-Pipeline" \
+               -F "auto_create_context=true"
 
+      # 4. Préparation et Import Kyverno
       - name: Import Kyverno to DefectDojo
+        if: always()
         env:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          chmod +x ./import_kyverno.sh
-          ./import_kyverno.sh
+          # Filtre uniquement les résultats 'fail'
+          jq '{findings: [.results[]? | select(.result == "fail") | {title: .message, severity: "High", description: .message, active: true, verified: false}]}' kyverno-report.json > kyverno_dojo.json
+          
+          curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
+               -H "Authorization: Token ${DD_API_TOKEN}" \
+               -F "scan_type=Generic Findings Import" \
+               -F "file=@kyverno_dojo.json" \
+               -F "product_name=DevSecOps-Pipeline" \
+               -F "engagement_name=CI-CD-Pipeline" \
+               -F "auto_create_context=true"
