@@ -1,0 +1,165 @@
+{
+  "findings": [
+    {
+      "title": "8f9477e3-de02-4943-a7b0-d977f2a9b290",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "114dca94-9e95-49e0-8935-c08d23c38659",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "2d506c41-57b4-4409-8c10-03732888fefe",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "9254df0c-e8ca-4666-a9da-3b85194bc05d",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "9478c4f1-c80a-49e1-a7a4-2336afb100e8",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "c7c9b2d1-b908-422b-ab71-914753f49992",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "de903b0d-85f1-46a6-82d4-3214d2f52a5a",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "e8fd2f40-784a-4052-97de-733872638fd9",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "ebde7c5f-94c8-494b-897e-0fa159a9c249",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "f457f3e4-e4f0-4cde-983f-b7d650ae5f53",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "fe95beac-e8ed-4964-aed2-4d5dc4615209",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "15c4b4c7-1bb2-484f-8c65-12ce7906de8f",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "2e7b4626-eae1-4517-b439-a7bac2c5a1a2",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "4ae89f35-ea7b-4de2-bcea-4243efbb3f70",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "53b604cb-e22a-4055-a404-1cb4dca251e1",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "5b20797c-bd50-4ac4-bf7e-294f4b810eaf",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "7109c9b1-6729-401c-aeac-d46e5da27950",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "82fc0ee2-1f05-4271-9de2-8a35d7e6c826",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "9ed1f8ab-b6ef-4c28-8580-c8c3c489e7e6",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "ab7a8016-8db4-4cdb-acaa-22f55244983a",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "be993aef-4c8d-4f44-9669-6d807b3d3352",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "cf806118-8dba-44de-b0b1-9e4f50cc82f2",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    },
+    {
+      "title": "f60c266d-00e8-4021-826d-07aeb95458c9",
+      "severity": "High",
+      "description": "Failures: 1",
+      "active": true,
+      "verified": false
+    }
+  ]
+}

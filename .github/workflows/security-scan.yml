@@ -11,18 +11,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 1. Scan Trivy avec blocage sur vulnérabilités critiques
+      # 0. Installation de jq
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      # 1. Scan Trivy
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'nginx:latest'
           format: 'json'
           output: 'trivy-report.json'
-          exit-code: '1' # Bloque le pipeline si vulnérabilités détectées
+          exit-code: '1'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true 
+        continue-on-error: true
 
-      # 2. Filtrage du rapport Trivy (version légère)
+      # 2. Filtrage du rapport Trivy
       - name: Filter Trivy report
         run: |
           jq '{SchemaVersion: .SchemaVersion, ArtifactName: .ArtifactName, Results: [.Results[]? | {Target: .Target, Class: .Class, Vulnerabilities: [.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")]}]}' trivy-report.json > trivy-report-light.json
@@ -42,16 +46,15 @@ jobs:
                -F "engagement_name=CI-CD-Pipeline" \
                -F "auto_create_context=true"
 
-      # 4. Préparation et Import Kyverno
+      # 4. Import Kyverno (Fichier local poussé avec le code)
       - name: Import Kyverno to DefectDojo
         if: always()
         env:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          # Filtre uniquement les résultats 'fail'
-          jq '{findings: [.results[]? | select(.result == "fail") | {title: .message, severity: "High", description: .message, active: true, verified: false}]}' kyverno-report.json > kyverno_dojo.json
-          
+          # Ici, on utilise directement le fichier présent dans ton repo
+          # Assure-toi que kyverno_dojo.json est bien dans ton dossier avant le push
           curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
                -F "scan_type=Generic Findings Import" \
