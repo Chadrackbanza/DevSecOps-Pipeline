@@ -11,33 +11,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 0. Installation de jq
-      - name: Install jq
-        run: sudo apt-get install jq -y
-      
-      # AJOUT DE L'IMAGE DE TEST DEFAILLANT 
+      # Lecture de la configuration dynamique
       - name: Set image to scan
         run: |
           echo "IMAGE_TO_SCAN=$(cat demo-config)" >> $GITHUB_ENV
 
-      # 1. Scan Trivy
+      # 0. Installation de jq
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      # 1. Scan Trivy - S'ARRÊTE SI FAILLE CRITIQUE/HIGH
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-         #image-ref: 'nginx:latest'
           image-ref: ${{ env.IMAGE_TO_SCAN }}
           format: 'json'
           output: 'trivy-report.json'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true
+        # continue-on-error a été supprimé pour bloquer le pipeline
 
-      # 2. Filtrage du rapport Trivy
+      # 2. Filtrage du rapport Trivy (S'exécute seulement si le scan a réussi)
       - name: Filter Trivy report
         run: |
           jq '{SchemaVersion: .SchemaVersion, ArtifactName: .ArtifactName, Results: [.Results[]? | {Target: .Target, Class: .Class, Vulnerabilities: [.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")]}]}' trivy-report.json > trivy-report-light.json
 
-      # 3. Import Trivy vers DefectDojo
+      # 3. Import Trivy vers DefectDojo (S'exécute toujours pour avoir le rapport même en cas d'échec)
       - name: Import Trivy to DefectDojo
         if: always()
         env:
@@ -53,15 +52,13 @@ jobs:
                -F "engagement_name=CI-CD-Pipeline" \
                -F "auto_create_context=true"
 
-      # 4. Import Kyverno (Fichier local poussé avec le code)
+      # 4. Import Kyverno
       - name: Import Kyverno to DefectDojo
         if: always()
         env:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          # Ici, on utilise directement le fichier présent dans ton repo
-          # Assure-toi que kyverno_dojo.json est bien dans ton dossier avant le push
           curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
                -F "scan_type=Generic Findings Import" \
@@ -69,4 +66,3 @@ jobs:
                -F "product_name=DevSecOps-Pipeline" \
                -F "engagement_name=CI-CD-Pipeline" \
                -F "auto_create_context=true"
-
