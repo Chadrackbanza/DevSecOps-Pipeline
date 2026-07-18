@@ -29,28 +29,36 @@ jobs:
           output: 'trivy-report.json'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
-        # continue-on-error a été supprimé pour bloquer le pipeline
 
-      # 2. Filtrage du rapport Trivy (S'exécute seulement si le scan a réussi)
+      # 2. Filtrage du rapport Trivy (S'exécute seulement si le scan Trivy n'a pas échoué)
       - name: Filter Trivy report
+        if: always()
         run: |
-          jq '{SchemaVersion: .SchemaVersion, ArtifactName: .ArtifactName, Results: [.Results[]? | {Target: .Target, Class: .Class, Vulnerabilities: [.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")]}]}' trivy-report.json > trivy-report-light.json
+          if [ -f trivy-report.json ]; then
+            jq '{SchemaVersion: .SchemaVersion, ArtifactName: .ArtifactName, Results: [.Results[]? | {Target: .Target, Class: .Class, Vulnerabilities: [.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")]}]}' trivy-report.json > trivy-report-light.json
+          else
+            echo "{}" > trivy-report-light.json
+          fi
 
-      # 3. Import Trivy vers DefectDojo (S'exécute toujours pour avoir le rapport même en cas d'échec)
+      # 3. Import Trivy vers DefectDojo (S'exécute toujours)
       - name: Import Trivy to DefectDojo
         if: always()
         env:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
-               -H "Authorization: Token ${DD_API_TOKEN}" \
-               -H "Bypass-Tunnel-Reminder: true" \
-               -F "scan_type=Trivy Scan" \
-               -F "file=@trivy-report-light.json" \
-               -F "product_name=DevSecOps-Pipeline" \
-               -F "engagement_name=CI-CD-Pipeline" \
-               -F "auto_create_context=true"
+          if [ -s trivy-report-light.json ]; then
+            curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
+                 -H "Authorization: Token ${DD_API_TOKEN}" \
+                 -H "Bypass-Tunnel-Reminder: true" \
+                 -F "scan_type=Trivy Scan" \
+                 -F "file=@trivy-report-light.json" \
+                 -F "product_name=DevSecOps-Pipeline" \
+                 -F "engagement_name=CI-CD-Pipeline" \
+                 -F "auto_create_context=true"
+          else
+            echo "Rapport Trivy vide ou inexistant, saut de l'import."
+          fi
 
       # 4. Import Kyverno
       - name: Import Kyverno to DefectDojo
@@ -59,10 +67,14 @@ jobs:
           DD_API_TOKEN: ${{ secrets.DD_API_TOKEN }}
           DD_URL: ${{ secrets.DD_URL }}
         run: |
-          curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
-               -H "Authorization: Token ${DD_API_TOKEN}" \
-               -F "scan_type=Generic Findings Import" \
-               -F "file=@kyverno_dojo.json" \
-               -F "product_name=DevSecOps-Pipeline" \
-               -F "engagement_name=CI-CD-Pipeline" \
-               -F "auto_create_context=true"
+          if [ -f kyverno_dojo.json ]; then
+            curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
+                 -H "Authorization: Token ${DD_API_TOKEN}" \
+                 -F "scan_type=Generic Findings Import" \
+                 -F "file=@kyverno_dojo.json" \
+                 -F "product_name=DevSecOps-Pipeline" \
+                 -F "engagement_name=CI-CD-Pipeline" \
+                 -F "auto_create_context=true"
+          else
+            echo "Fichier kyverno_dojo.json non trouvé, saut de l'import."
+          fi
