@@ -14,12 +14,18 @@ jobs:
       # 0. Installation de jq
       - name: Install jq
         run: sudo apt-get install jq -y
+      
+      # AJOUT DE L'IMAGE DE TEST DEFAILLANT 
+      - name: Set image to scan
+        run: |
+          echo "IMAGE_TO_SCAN=$(cat demo-config)" >> $GITHUB_ENV
 
       # 1. Scan Trivy
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'nginx:latest'
+         #image-ref: 'nginx:latest'
+          image-ref: ${{ env.IMAGE_TO_SCAN }}
           format: 'json'
           output: 'trivy-report.json'
           exit-code: '1'
@@ -40,6 +46,7 @@ jobs:
         run: |
           curl -v -X POST "${DD_URL}/api/v2/import-scan/" \
                -H "Authorization: Token ${DD_API_TOKEN}" \
+               -H "Bypass-Tunnel-Reminder: true" \
                -F "scan_type=Trivy Scan" \
                -F "file=@trivy-report-light.json" \
                -F "product_name=DevSecOps-Pipeline" \
@@ -62,3 +69,4 @@ jobs:
                -F "product_name=DevSecOps-Pipeline" \
                -F "engagement_name=CI-CD-Pipeline" \
                -F "auto_create_context=true"
+
